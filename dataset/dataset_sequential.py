@@ -29,7 +29,7 @@ class DatasetSequential(Dataset):
         x_seq = self.state[idx : idx + self.seq_len]  # (seq_len, feature_dim)
 
         # target action = long/short at the last day in the sequence
-        last_idx = idx + self.seq_len - 1
+        last_idx = idx + self.seq_len
         y = self.target[last_idx]
 
         return (
@@ -59,7 +59,7 @@ class DatasetSequentialAugmented(DatasetSequential):
         ])
         x_seq = window[selected_idx]
 
-        last_idx = idx + self.aug_window - 1
+        last_idx = idx + self.aug_window
         y = self.target[last_idx]
 
         return x_seq, y
