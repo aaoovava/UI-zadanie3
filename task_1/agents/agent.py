@@ -2,6 +2,10 @@ from dataclasses import dataclass
 from typing import List
 
 import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
 
 from dataset.dataset_flat import DatasetFlatAugmented, DatasetFlat
 from dataset.dataset_sequential import DatasetSequential, DatasetSequentialAugmented
@@ -10,15 +14,19 @@ from loaders.pred_prices_provider import PredPricesProvider
 from loaders.real_prices_provider import RealPricesProvider
 from timeseries.TimeseriesInterval import TimeseriesInterval
 
+from models.gru_classifier import GRUClassifier
 
 @dataclass
 class AgentConfig:
     device: str = "cpu"
-    learning_rate: float = 1e-3
-    batch_size: int = 32
-    train_episodes: int = 200
+    learning_rate: float = 0.0025
+    batch_size: int = 64
+    epochs: int = 150
     train_days: int = 7
-    # ...
+
+    hidden_size: int = 48
+    num_layers: int = 1
+    dropout: float = 0.5
 
 class Agent:
     def __init__(
@@ -30,13 +38,82 @@ class Agent:
         self.config = config
         self.real_prices_provider = real_prices_provider
         self.pred_prices_provider = pred_prices_provider
-        self.model = None # here comes your model
+
+        self.device = torch.device(config.device)
+
+        models_count = len (self.pred_prices_provider.get_models_defs())
+        input_size = models_count + 1
+
+        self.model = GRUClassifier(
+            input_size = input_size,
+            hidden_size = self.config.hidden_size,
+            num_layers = self.config.num_layers,
+            dropout = self.config.dropout
+        ).to(self.device)
+
 
     def train(self, interval: TimeseriesInterval, symbols: List[str]):
-        raise NotImplementedError()
+        dataset = self.prepare_dataset(symbols, interval, augmentation=True)
+        dataloader = DataLoader(dataset, batch_size = self.config.batch_size, shuffle = True)
+
+        criterion = nn.BCEWithLogitsLoss()
+        optimizer = optim.Adam(self.model.parameters(), lr=self.config.learning_rate)
+
+        self.model.train()
+        print("Start training on", len(dataset), "samples for", self.config.epochs, "episodes")
+
+        for epoch in range (self.config.epochs):
+            total_loss = 0
+            correct = 0
+            total = 0
+
+            for batch_x, batch_y in dataloader:
+                inputs = batch_x.to(self.device).float()
+                targets = batch_y.to(self.device).float().unsqueeze(1)
+
+                optimizer.zero_grad()
+                logits = self.model(inputs)
+                loss = criterion(logits, targets)
+
+                loss.backward()
+                optimizer.step()
+
+                total_loss += loss.item()
+                probs = torch.sigmoid(logits)
+                predicted = (probs > 0.5).float()
+                correct += (predicted == targets).sum().item()
+                total += targets.size(0)
+
+            if (epoch + 1) % 10 == 0:
+                avg_loss = total_loss / len(dataloader)
+                acc = correct / total * 100
+
+                print("Epoch:", epoch + 1, "Loss:", avg_loss, "Accuracy(%):", acc)
+
 
     def test(self, interval: TimeseriesInterval, symbols: List[str]):
-        raise NotImplementedError()
+        dataset = self.prepare_dataset(symbols, interval, augmentation=False)
+        dataloader = DataLoader(dataset, batch_size=self.config.batch_size, shuffle=False)
+
+        self.model.eval()
+        correct = 0
+        total = 0
+
+        with torch.no_grad():
+            for batch_x, batch_y in dataloader:
+                inputs = batch_x.to(self.device).float()
+                targets = batch_y.to(self.device).float().unsqueeze(1)
+
+                logits = self.model(inputs)          # логіти
+                probs = torch.sigmoid(logits)        # ймовірності
+                predicted = (probs > 0.5).float()
+
+                correct += (predicted == targets).sum().item()
+                total += targets.size(0)
+
+        acc = 100 * correct / total
+        print(f"Test Results for {symbols}: Accuracy = {acc:.2f}%")
+        print("-" * 30)
 
     def prepare_dataset(self, symbols: List[str], timeseries_interval: TimeseriesInterval, augmentation=False):
         model_data = self.__get_model_state(

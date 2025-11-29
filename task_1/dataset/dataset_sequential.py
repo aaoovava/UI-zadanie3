@@ -1,5 +1,5 @@
-import torch
-from torch.utils.data import Dataset
+import torch # type: ignore
+from torch.utils.data import Dataset # type: ignore
 
 class DatasetSequential(Dataset):
     """

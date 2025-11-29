@@ -13,26 +13,26 @@ def utc_datetime(year: int, month: int, day: int):
     return datetime.datetime(year, month, day, tzinfo=datetime.timezone.utc)
 
 if __name__ == '__main__':
-    # AGENT_SYMBOLS = [
-    #     'BINANCE_SPOT_DOT_USDT',
-    #     'BINANCE_SPOT_SOL_USDT',
-    #     'BINANCE_SPOT_BNB_USDT',
-    #     'BINANCE_SPOT_LINK_USDT',
-    #     'BINANCE_SPOT_ADA_USDT',
-    #     'BINANCE_SPOT_AVAX_USDT',
-    #     'BINANCE_SPOT_LTC_USDT',
-    #     'BINANCE_SPOT_XRP_USDT',
-    #     'BINANCE_SPOT_BTC_USDT',
-    #     'BINANCE_SPOT_ICP_USDT',
-    #     'BINANCE_SPOT_TRX_USDT',
-    #     'BINANCE_SPOT_SHIB_USDT',
-    #     'BINANCE_SPOT_ETH_USDT',
-    #     'BINANCE_SPOT_DOGE_USDT',
-    # ]
-
     AGENT_SYMBOLS = [
         'BINANCE_SPOT_DOT_USDT',
+        'BINANCE_SPOT_SOL_USDT',
+        'BINANCE_SPOT_BNB_USDT',
+        'BINANCE_SPOT_LINK_USDT',
+        'BINANCE_SPOT_ADA_USDT',
+        'BINANCE_SPOT_AVAX_USDT',
+        'BINANCE_SPOT_LTC_USDT',
+        'BINANCE_SPOT_XRP_USDT',
+        'BINANCE_SPOT_BTC_USDT',
+        'BINANCE_SPOT_ICP_USDT',
+        'BINANCE_SPOT_TRX_USDT',
+        'BINANCE_SPOT_SHIB_USDT',
+        'BINANCE_SPOT_ETH_USDT',
+        'BINANCE_SPOT_DOGE_USDT',
     ]
+
+    # AGENT_SYMBOLS = [
+    #     'BINANCE_SPOT_DOT_USDT',
+    # ]
 
     ACTION_LONG = 0
     ACTION_SHORT = 1
@@ -81,8 +81,9 @@ if __name__ == '__main__':
         pred_prices_provider=AGENT_PRED_PRICES_PROVIDER,
     )
 
+    agent.train(interval=AGENT_TRAIN_INTERVAL, symbols=AGENT_SYMBOLS)
+
     for symbol in AGENT_SYMBOLS:
         print(symbol)
-        agent.train(interval=AGENT_TRAIN_INTERVAL, symbols=[symbol])
         agent.test(interval=AGENT_TEST_INTERVAL, symbols=[symbol])
 
