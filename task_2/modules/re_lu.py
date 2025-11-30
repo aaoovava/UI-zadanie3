@@ -5,6 +5,7 @@ class ReLU:
         self.X = None
 
     def forward(self, X):
+        self.X = X
         self.out = np.maximum(0, X)
         return self.out
 

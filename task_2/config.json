@@ -1,0 +1,10 @@
+{
+    "dataset": "XOR",
+    "optimizer" : {
+        "type": "OPTMomentum",
+        "learning_rate": 0.1,
+        "momentum": 0.5
+    },
+    "epochs": 500,
+    "hidden_layers": [4]
+}
