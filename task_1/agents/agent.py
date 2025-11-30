@@ -15,13 +15,14 @@ from loaders.real_prices_provider import RealPricesProvider
 from timeseries.TimeseriesInterval import TimeseriesInterval
 
 from models.gru_classifier import GRUClassifier
+from models.lstm_classifier import LSTMClassifier
 
 @dataclass
 class AgentConfig:
     device: str = "cpu"
     learning_rate: float = 0.0025
     batch_size: int = 64
-    epochs: int = 150
+    epochs: int = 200
     train_days: int = 7
 
     hidden_size: int = 48
@@ -104,8 +105,8 @@ class Agent:
                 inputs = batch_x.to(self.device).float()
                 targets = batch_y.to(self.device).float().unsqueeze(1)
 
-                logits = self.model(inputs)          # логіти
-                probs = torch.sigmoid(logits)        # ймовірності
+                logits = self.model(inputs)
+                probs = torch.sigmoid(logits)
                 predicted = (probs > 0.5).float()
 
                 correct += (predicted == targets).sum().item()
@@ -114,6 +115,8 @@ class Agent:
         acc = 100 * correct / total
         print(f"Test Results for {symbols}: Accuracy = {acc:.2f}%")
         print("-" * 30)
+
+        return acc
 
     def prepare_dataset(self, symbols: List[str], timeseries_interval: TimeseriesInterval, augmentation=False):
         model_data = self.__get_model_state(

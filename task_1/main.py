@@ -82,8 +82,11 @@ if __name__ == '__main__':
     )
 
     agent.train(interval=AGENT_TRAIN_INTERVAL, symbols=AGENT_SYMBOLS)
+    all_accuracies = []
 
     for symbol in AGENT_SYMBOLS:
         print(symbol)
-        agent.test(interval=AGENT_TEST_INTERVAL, symbols=[symbol])
+        symbol_acc = agent.test(interval=AGENT_TEST_INTERVAL, symbols=[symbol])
+        all_accuracies.append(symbol_acc)
 
+    print("Average test accuracy:", sum(all_accuracies) / len(all_accuracies))
