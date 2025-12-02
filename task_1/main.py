@@ -1,5 +1,6 @@
 import datetime
 import os
+import matplotlib.pyplot as plt
 
 from agents.agent import Agent, AgentConfig
 from loaders.pred_prices_loader_csv import PredPricesLoaderCSV2
@@ -81,12 +82,22 @@ if __name__ == '__main__':
         pred_prices_provider=AGENT_PRED_PRICES_PROVIDER,
     )
 
-    agent.train(interval=AGENT_TRAIN_INTERVAL, symbols=AGENT_SYMBOLS)
+    loss_history = agent.train(interval=AGENT_TRAIN_INTERVAL, symbols=AGENT_SYMBOLS)
+    plt.plot(loss_history)
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.show()
+
     all_accuracies = []
 
     for symbol in AGENT_SYMBOLS:
         print(symbol)
         symbol_acc = agent.test(interval=AGENT_TEST_INTERVAL, symbols=[symbol])
         all_accuracies.append(symbol_acc)
+
+    plt.plot(all_accuracies)
+    plt.xlabel("Symbol")
+    plt.ylabel("Accuracy")
+    plt.show()
 
     print("Average test accuracy:", sum(all_accuracies) / len(all_accuracies))

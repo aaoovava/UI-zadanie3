@@ -20,14 +20,14 @@ from models.lstm_classifier import LSTMClassifier
 @dataclass
 class AgentConfig:
     device: str = "cpu"
-    learning_rate: float = 0.0025
+    learning_rate: float = 0.006
     batch_size: int = 64
-    epochs: int = 200
+    epochs: int = 150
     train_days: int = 7
 
     hidden_size: int = 48
-    num_layers: int = 1
-    dropout: float = 0.5
+    num_layers: int = 2
+    dropout: float = 0.3
 
 class Agent:
     def __init__(
@@ -63,6 +63,8 @@ class Agent:
         self.model.train()
         print("Start training on", len(dataset), "samples for", self.config.epochs, "episodes")
 
+        losses_history = []
+
         for epoch in range (self.config.epochs):
             total_loss = 0
             correct = 0
@@ -79,6 +81,8 @@ class Agent:
                 loss.backward()
                 optimizer.step()
 
+                losses_history.append(loss.item())
+
                 total_loss += loss.item()
                 probs = torch.sigmoid(logits)
                 predicted = (probs > 0.5).float()
@@ -90,6 +94,8 @@ class Agent:
                 acc = correct / total * 100
 
                 print("Epoch:", epoch + 1, "Loss:", avg_loss, "Accuracy(%):", acc)
+
+        return losses_history
 
 
     def test(self, interval: TimeseriesInterval, symbols: List[str]):

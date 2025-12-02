@@ -79,7 +79,10 @@ def main():
     plt.show()
 
     y_pred = model.forward(X)
-    print("test data", X, "y_pred", y_pred, "y_true", Y)
+
+    for x, pred, true in zip(X, y_pred, Y):
+        print(f"input={x} → predicted={pred[0]:.3f}, true={true[0]}")
+
 
 if __name__ == "__main__":
     main()

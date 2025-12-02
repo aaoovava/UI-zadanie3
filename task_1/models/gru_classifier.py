@@ -17,10 +17,10 @@ class GRUClassifier(nn.Module):
             dropout=dropout if num_layers > 1 else 0,
             bidirectional=bidirectional
         )
-        self.fc = nn.Linear(hidden_size * d, 1)  # логіт на виході
+        self.fc = nn.Linear(hidden_size * d, 1)
 
     def forward(self, x):
-        out, _ = self.gru(x)          # (batch, seq_len, hidden*d)
-        out = out[:, -1, :]           # беремо останній час-крок
-        logit = self.fc(out)          # НЕ застосовуємо sigmoid тут
-        return logit                   # повертаємо логіти
+        out, _ = self.gru(x)
+        out = out[:, -1, :]
+        logit = self.fc(out)
+        return logit
